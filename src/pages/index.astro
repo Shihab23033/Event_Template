@@ -4,22 +4,27 @@ import Hero from '../components/sections/Hero.astro';
 import Gallery from '../components/sections/Gallery.astro';
 import { sanityClient } from '../lib/sanity';
 
-// Fetches the most recently updated version (includes unpublished draft changes)
+// GROQ Query fetching all essential settings and gallery images
 const query = `*[_type == "eventData"] | order(_updatedAt desc)[0]`;
 const event = await sanityClient.fetch(query);
 
-// Temporary check: Look at your VS Code terminal window to verify gallery data!
-console.log("Sanity event object:", event);
+if (!event) {
+  return Astro.redirect('/404'); // Handle case where no data exists
+}
 ---
 
-<BaseLayout title={event?.title || "Event"} themeColor={event?.themeColor}>
-  {/* Render the Hero section */}
+<BaseLayout 
+  title={event.title || "Memory Album"} 
+  themeColor={event.themeColor} 
+  fontStyle={event.fontStyle}
+>
   <Hero 
-    title={event?.title} 
-    subtitle={event?.subtitle} 
-    date={event?.date} 
+    title={event.title} 
+    eventDateTime={event.eventDateTime} // Precise datetime for calculation
+    heroDisplayDate={event.heroDisplayDate} // Human date to show
+    heroImage={event.heroImage}
+    welcomeText={event.welcomeText}
   />
   
-  {/* Render the Gallery section if images exist */}
-  {event?.gallery && <Gallery images={event.gallery} />}
+  {event.gallery && <Gallery images={event.gallery} />}
 </BaseLayout>

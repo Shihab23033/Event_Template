@@ -1,0 +1,45 @@
+---
+const { audioUrl } = Astro.props;
+if (!audioUrl) return null;
+---
+
+<div class="fixed bottom-6 right-6 z-50">
+  <button
+    id="music-toggle"
+    type="button"
+    class="flex items-center gap-3 px-4 py-3 rounded-full bg-slate-900/90 text-white backdrop-blur-md shadow-xl hover:scale-105 transition-transform duration-300 cursor-pointer border border-white/10"
+    aria-label="Toggle background music"
+  >
+    <!-- Animated Equalizer Bars -->
+    <div id="equalizer" class="flex items-end gap-0.5 h-4">
+      <span class="w-1 bg-white rounded-full h-2 animate-pulse"></span>
+      <span class="w-1 bg-white rounded-full h-4 animate-pulse delay-100"></span>
+      <span class="w-1 bg-white rounded-full h-3 animate-pulse delay-200"></span>
+    </div>
+
+    <span id="music-text" class="text-xs font-medium uppercase tracking-wider">Play Music</span>
+  </button>
+
+  <audio id="bg-audio" loop src={audioUrl}></audio>
+</div>
+
+<script>
+  const toggleBtn = document.getElementById('music-toggle');
+  const audio = document.getElementById('bg-audio') as HTMLAudioElement | null;
+  const text = document.getElementById('music-text');
+  let isPlaying = false;
+
+  toggleBtn?.addEventListener('click', () => {
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+      if (text) text.textContent = 'Play Music';
+      isPlaying = false;
+    } else {
+      audio.play();
+      if (text) text.textContent = 'Pause Music';
+      isPlaying = true;
+    }
+  });
+</script>

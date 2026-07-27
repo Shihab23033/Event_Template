@@ -2,10 +2,19 @@
 import "../styles/global.css";
 
 const {
-  title = "Event Template",
-  themeColor = "#000000",
-  themeFont = "sans-serif",
+  title = "Memory Album",
+  themeColor = "#D8B774",
+  fontStyle = "serif",
 } = Astro.props;
+
+// Map Sanity selection to Google Font stacks
+const fontFamilies: Record<string, string> = {
+  serif: "'Playfair Display', Georgia, serif",
+  sans: "'Inter', system-ui, sans-serif",
+  cursive: "'Dancing Script', cursive, sans-serif",
+};
+
+const selectedFont = fontFamilies[fontStyle] || fontFamilies.serif;
 ---
 
 <!DOCTYPE html>
@@ -14,11 +23,16 @@ const {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
+
+    <!-- Import Google Fonts: Serif, Sans, and Cursive -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Inter:wght@300..700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
   </head>
-  <body style={`--theme-primary: ${themeColor}; font-family: ${themeFont};`}>
-
-    {/* The <slot /> tells Astro where to render Hero, Gallery, and all child components */}
+  <body 
+    style={`--theme-accent: ${themeColor}; font-family: ${selectedFont};`}
+    class="min-h-screen text-slate-800 antialiased"
+  >
     <slot />
-
   </body>
 </html>

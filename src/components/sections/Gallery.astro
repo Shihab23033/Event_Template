@@ -2,23 +2,55 @@
 import { urlFor } from '../../lib/image';
 
 const { images = [] } = Astro.props;
+
+// Filter out empty image slots that don't have an asset attached
+const validImages = images.filter((img: any) => img && img.asset);
+
+// Safely extract unique categories from valid images
+const rawCategories: string[] = validImages
+  .map((img: any) => img.category)
+  .filter((cat: any): cat is string => Boolean(cat));
+
+const categories: string[] = ["All", ...Array.from(new Set(rawCategories))];
 ---
 
 <section class="max-w-6xl mx-auto px-4 py-16">
-  <h2 class="text-3xl font-bold text-center mb-10">Moments & Memories</h2>
+  <div class="text-center space-y-3 mb-10">
+    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight">Moments & Memories</h2>
+    <p class="text-slate-500 text-sm max-w-md mx-auto">Click on any photograph to view in full resolution.</p>
+    
+    {/* Category Filter Buttons */}
+    {categories.length > 1 && (
+      <div class="flex flex-wrap justify-center gap-2 pt-4">
+        {categories.map((cat, index) => (
+          <button
+            type="button"
+            class={`filter-btn px-4 py-2 rounded-full text-xs font-medium transition-all duration-300 cursor-pointer ${
+              index === 0 
+                ? 'bg-slate-900 text-white shadow-md' 
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+            data-category={cat}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
 
-  <!-- CSS Grid for responsive gallery -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-    {images.map((img: any) => {
-      // Small WebP for fast grid loading
+  <!-- Gallery Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="gallery-grid">
+    {validImages.map((img: any) => {
       const thumbUrl = urlFor(img).width(600).height(600).format('webp').quality(80).url();
-      // High-res WebP loaded only on click
       const fullUrl = urlFor(img).width(1600).format('webp').quality(90).url();
+      const imgCategory = img.category || "All";
 
       return (
         <button
           type="button"
-          class="gallery-item group relative overflow-hidden rounded-2xl bg-gray-100 aspect-square shadow-sm cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          class="gallery-item group relative overflow-hidden rounded-2xl bg-slate-100 aspect-square shadow-sm cursor-pointer text-left focus:outline-none transition-all duration-500"
+          data-category={imgCategory}
           data-full-src={fullUrl}
           data-alt={img.alt || "Event photo"}
           data-caption={img.caption || ""}
@@ -29,59 +61,77 @@ const { images = [] } = Astro.props;
             alt={img.alt || "Event photo"}
             loading="lazy"
             decoding="async"
-            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          {img.caption && (
-            <div class="absolute bottom-0 inset-x-0 bg-linear-to-t from-black/70 to-transparent p-4 text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-              <p>{img.caption}</p>
-              {img.year && <span class="text-xs text-gray-300">{img.year}</span>}
-            </div>
-          )}
+          <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent p-5 text-white flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            {img.caption && <p class="text-sm font-medium">{img.caption}</p>}
+            {img.category && <span class="text-xs text-slate-300 mt-1 uppercase tracking-wider">{img.category}</span>}
+          </div>
         </button>
       );
     })}
   </div>
 
-  <!-- Lightbox Modal for Fullscreen View -->
+  <!-- Lightbox Modal -->
   <dialog 
     id="lightbox-dialog" 
-    class="backdrop:bg-black/80 bg-transparent p-0 border-0 max-w-5xl w-[90vw] max-h-[90vh] rounded-2xl overflow-hidden focus:outline-none m-auto"
+    class="backdrop:bg-black/85 bg-transparent p-0 border-0 max-w-5xl w-[92vw] max-h-[90vh] rounded-3xl overflow-hidden focus:outline-none m-auto"
   >
-    <div class="relative flex flex-col items-center justify-center bg-black/90 p-4 rounded-2xl">
-      <!-- Close Button -->
+    <div class="relative flex flex-col items-center justify-center bg-black/90 p-6 rounded-3xl">
       <button 
         id="close-lightbox" 
         type="button" 
-        class="absolute top-4 right-4 text-white/80 hover:text-white bg-black/50 hover:bg-black/80 rounded-full p-2 transition z-10 cursor-pointer"
-        aria-label="Close modal"
+        class="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2 transition cursor-pointer"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
 
-      <!-- Fullsize Image -->
-      <img id="lightbox-img" src="" alt="" class="max-h-[80vh] w-auto object-contain rounded-lg" />
+      <img id="lightbox-img" src="" alt="" class="max-h-[78vh] w-auto object-contain rounded-xl shadow-2xl" />
 
-      <!-- Caption Details -->
-      <div id="lightbox-caption-box" class="mt-3 text-center text-white hidden">
+      <div id="lightbox-caption-box" class="mt-4 text-center text-white hidden">
         <p id="lightbox-caption" class="text-base font-medium"></p>
-        <span id="lightbox-year" class="text-xs text-gray-400"></span>
+        <span id="lightbox-year" class="text-xs text-slate-400"></span>
       </div>
     </div>
   </dialog>
 </section>
 
 <script>
-  // Interactive Lightbox Script
+  // Filter logic
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const galleryItems = document.querySelectorAll('.gallery-item');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const category = btn.getAttribute('data-category');
+
+      filterBtns.forEach(b => {
+        b.classList.remove('bg-slate-900', 'text-white', 'shadow-md');
+        b.classList.add('bg-slate-100', 'text-slate-600');
+      });
+      btn.classList.remove('bg-slate-100', 'text-slate-600');
+      btn.classList.add('bg-slate-900', 'text-white', 'shadow-md');
+
+      galleryItems.forEach((item) => {
+        const itemCategory = item.getAttribute('data-category');
+        if (category === 'All' || itemCategory === category) {
+          (item as HTMLElement).style.display = 'block';
+        } else {
+          (item as HTMLElement).style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // Lightbox logic
   const dialog = document.getElementById('lightbox-dialog') as HTMLDialogElement | null;
   const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement | null;
   const lightboxCaptionBox = document.getElementById('lightbox-caption-box');
   const lightboxCaption = document.getElementById('lightbox-caption');
   const lightboxYear = document.getElementById('lightbox-year');
   const closeBtn = document.getElementById('close-lightbox');
-
-  const galleryItems = document.querySelectorAll('.gallery-item');
 
   galleryItems.forEach((item) => {
     item.addEventListener('click', () => {
@@ -107,7 +157,6 @@ const { images = [] } = Astro.props;
     });
   });
 
-  // Close modal handlers
   closeBtn?.addEventListener('click', () => dialog?.close());
   dialog?.addEventListener('click', (e) => {
     if (e.target === dialog) dialog.close();

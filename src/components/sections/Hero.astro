@@ -1,15 +1,210 @@
 ---
-// The component expects these details to be passed to it
-const { title, subtitle, date } = Astro.props;
+import { urlFor } from '../../lib/image';
+
+const {
+  title,
+  eventDateTime,
+  heroDisplayDate,
+  heroImage,
+  welcomeText,
+} = Astro.props;
+
+const imageUrl = heroImage 
+  ? urlFor(heroImage).width(1920).height(1080).quality(90).auto('format').url() 
+  : null;
+
+const hotspotX = heroImage?.hotspot?.x ? `${heroImage.hotspot.x * 100}%` : '50%';
+const hotspotY = heroImage?.hotspot?.y ? `${heroImage.hotspot.y * 100}%` : '50%';
 ---
 
-<section 
-  style="background-color: var(--theme-primary);" 
-  class="py-24 flex flex-col items-center justify-center text-white text-center p-6"
->
-  <h1 class="text-5xl md:text-7xl font-bold mb-4">{title}</h1>
-  {subtitle && <p class="text-2xl md:text-3xl mb-8">{subtitle}</p>}
-  <div class="inline-block border border-white/50 px-6 py-3 rounded-full backdrop-blur-sm">
-    <p class="text-lg uppercase tracking-widest">{date}</p>
+<header class="relative w-full min-h-screen flex flex-col justify-between bg-slate-900 text-white overflow-hidden">
+  
+  <!-- BACKGROUND LAYER -->
+  <div class="absolute inset-0 z-0">
+    {imageUrl ? (
+      <img 
+        src={imageUrl} 
+        alt={title || "Cover Photo"}
+        style={`object-position: ${hotspotX} ${hotspotY};`}
+        class="w-full h-full object-cover"
+      />
+    ) : (
+      <div class="w-full h-full bg-slate-800"></div>
+    )}
+    <div class="absolute inset-0 bg-black/45"></div>
   </div>
-</section>
+
+  <!-- TOP NAVIGATION HEADER -->
+  <nav class="relative z-20 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between text-xs tracking-widest uppercase font-medium border-b border-white/20">
+    <div class="font-bold tracking-wider text-sm sm:text-base">
+      {title || "MEMORY ALBUM"}
+    </div>
+    <div class="hidden md:flex items-center gap-8 text-white/80">
+      <a href="#gallery" class="hover:text-white transition-colors">Gallery</a>
+      <a href="#welcome" class="hover:text-white transition-colors">Welcome</a>
+    </div>
+  </nav>
+
+  <!-- MIDDLE SECTION (Title & Dynamic Timer) -->
+  <section class="relative z-10 flex-grow flex items-center justify-center py-16 px-4 sm:px-6 text-center">
+    <div class="space-y-6 max-w-5xl w-full">
+      
+      <!-- Event Title (Inherits Sanity Font Theme) -->
+      <h1 class="text-4xl sm:text-7xl md:text-8xl font-normal tracking-tight leading-tight uppercase">
+        {title || "HANNA & CALEB"}
+      </h1>
+
+      <!-- Display Date -->
+      {heroDisplayDate && (
+        <p class="italic text-xl sm:text-3xl text-emerald-300 mt-4 tracking-wide">
+          {heroDisplayDate}
+        </p>
+      )}
+
+      <!-- DYNAMIC TIMER (Locked to Standard Sans-Serif Font) -->
+      <div class="mt-8 sm:mt-12 inline-flex flex-col items-center max-w-full">
+        <div class="bg-black/40 backdrop-blur-md border border-white/20 rounded-2xl sm:rounded-3xl px-4 sm:px-8 py-4 sm:py-6 shadow-2xl max-w-full">
+          <p class="font-sans text-[10px] sm:text-xs uppercase tracking-widest text-white/70 font-semibold mb-3">
+            MEMORIES CHERISHED FOR
+          </p>
+          
+          <!-- Explicit font-sans and tabular-nums ensure standard look and steady alignment -->
+          <div id="memory-timer" class="font-cursib tabular-nums flex flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-5 text-white">
+            
+            <!-- Years -->
+            <div class="text-center min-w-[40px] sm:min-w-[55px]">
+              <span id="years-count" class="text-2xl sm:text-4xl md:text-5xl font-bold">0</span>
+              <span class="block text-[9px] sm:text-[11px] mt-1 uppercase tracking-wider text-white/70">Years</span>
+            </div>
+            
+            <span class="text-white/40 font-light text-base sm:text-2xl">:</span>
+            
+            <!-- Months -->
+            <div class="text-center min-w-[40px] sm:min-w-[55px]">
+              <span id="months-count" class="text-2xl sm:text-4xl md:text-5xl font-bold">0</span>
+              <span class="block text-[9px] sm:text-[11px] mt-1 uppercase tracking-wider text-white/70">Months</span>
+            </div>
+            
+            <span class="text-white/40 font-light text-base sm:text-2xl">:</span>
+            
+            <!-- Days -->
+            <div class="text-center min-w-[40px] sm:min-w-[55px]">
+              <span id="days-count" class="text-2xl sm:text-4xl md:text-5xl font-bold">0</span>
+              <span class="block text-[9px] sm:text-[11px] mt-1 uppercase tracking-wider text-white/70">Days</span>
+            </div>
+
+            <span class="text-white/40 font-light text-base sm:text-2xl">:</span>
+
+            <!-- Hours -->
+            <div class="text-center min-w-[40px] sm:min-w-[55px]">
+              <span id="hours-count" class="text-2xl sm:text-4xl md:text-5xl font-bold">00</span>
+              <span class="block text-[9px] sm:text-[11px] mt-1 uppercase tracking-wider text-white/70">Hours</span>
+            </div>
+
+            <span class="text-white/40 font-light text-base sm:text-2xl">:</span>
+
+            <!-- Minutes -->
+            <div class="text-center min-w-[40px] sm:min-w-[55px]">
+              <span id="mins-count" class="text-2xl sm:text-4xl md:text-5xl font-bold">00</span>
+              <span class="block text-[9px] sm:text-[11px] mt-1 uppercase tracking-wider text-white/70">Mins</span>
+            </div>
+
+            <span class="text-white/40 font-light text-base sm:text-2xl">:</span>
+
+            <!-- Seconds -->
+            <div class="text-center min-w-[40px] sm:min-w-[55px]">
+              <span id="secs-count" class="text-2xl sm:text-4xl md:text-5xl font-bold">00</span>
+              <span class="block text-[9px] sm:text-[11px] mt-1 uppercase tracking-wider text-white/70">Secs</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- BOTTOM SECTION -->
+  <footer class="relative z-10 w-full max-w-3xl mx-auto px-6 pb-12 text-center flex flex-col items-center">
+    <a 
+      href="#gallery" 
+      style="background-color: var(--theme-accent);"
+      class="inline-block px-10 py-4 rounded-full text-slate-950 font-medium text-sm sm:text-base tracking-wide shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+    >
+      Explore Memory Gallery
+    </a>
+
+    {welcomeText && (
+      <div id="welcome" class="mt-16 w-full pt-8 border-t border-white/20">
+        <p class="text-white/80 text-base sm:text-lg leading-relaxed italic">
+          "{welcomeText}"
+        </p>
+      </div>
+    )}
+  </footer>
+
+</header>
+
+<!-- JavaScript Live Timer Script -->
+<script data-datetime={eventDateTime}>
+  function initLiveTimer() {
+    const scriptEl = document.currentScript;
+    const rawDateTime = scriptEl?.getAttribute('data-datetime');
+    if (!rawDateTime) return;
+
+    const eventDate = new Date(rawDateTime);
+    if (isNaN(eventDate.getTime())) return;
+
+    function updateCounter() {
+      const now = new Date();
+
+      let years = now.getFullYear() - eventDate.getFullYear();
+      let months = now.getMonth() - eventDate.getMonth();
+      let days = now.getDate() - eventDate.getDate();
+      let hours = now.getHours() - eventDate.getHours();
+      let minutes = now.getMinutes() - eventDate.getMinutes();
+      let seconds = now.getSeconds() - eventDate.getSeconds();
+
+      if (seconds < 0) {
+        minutes--;
+        seconds += 60;
+      }
+      if (minutes < 0) {
+        hours--;
+        minutes += 60;
+      }
+      if (hours < 0) {
+        days--;
+        hours += 24;
+      }
+      if (days < 0) {
+        months--;
+        const prevMonthLastDay = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+        days += prevMonthLastDay;
+      }
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+
+      const formatVal = (num) => Math.max(0, num).toString().padStart(2, '0');
+
+      const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
+
+      setEl('years-count', Math.max(0, years));
+      setEl('months-count', Math.max(0, months));
+      setEl('days-count', Math.max(0, days));
+      setEl('hours-count', formatVal(hours));
+      setEl('mins-count', formatVal(minutes));
+      setEl('secs-count', formatVal(seconds));
+    }
+
+    updateCounter();
+    setInterval(updateCounter, 1000);
+  }
+
+  initLiveTimer();
+</script>
