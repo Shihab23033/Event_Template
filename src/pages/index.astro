@@ -1,11 +1,25 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/sections/Hero.astro';
+import Gallery from '../components/sections/Gallery.astro';
 import { sanityClient } from '../lib/sanity';
 
-// 1. Query the database: "Find the first document of type 'eventData'"
-const query = `*[_type == "eventData"][0]`;
-
-// 2. Fetch the data securely at build time
+// Fetches the most recently updated version (includes unpublished draft changes)
+const query = `*[_type == "eventData"] | order(_updatedAt desc)[0]`;
 const event = await sanityClient.fetch(query);
+
+// Temporary check: Look at your VS Code terminal window to verify gallery data!
+console.log("Sanity event object:", event);
 ---
+
+<BaseLayout title={event?.title || "Event"} themeColor={event?.themeColor}>
+  {/* Render the Hero section */}
+  <Hero 
+    title={event?.title} 
+    subtitle={event?.subtitle} 
+    date={event?.date} 
+  />
+  
+  {/* Render the Gallery section if images exist */}
+  {event?.gallery && <Gallery images={event.gallery} />}
+</BaseLayout>

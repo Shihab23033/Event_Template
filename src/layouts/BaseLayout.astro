@@ -1,7 +1,6 @@
 ---
 import "../styles/global.css";
 
-// These props will eventually come from your CMS
 const {
   title = "Event Template",
   themeColor = "#000000",
@@ -9,8 +8,17 @@ const {
 } = Astro.props;
 ---
 
-{title}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+  </head>
+  <body style={`--theme-primary: ${themeColor}; font-family: ${themeFont};`}>
 
-{/* Injecting CSS variables here allows Tailwind to use them everywhere */}
+    {/* The <slot /> tells Astro where to render Hero, Gallery, and all child components */}
+    <slot />
 
-{/* The  is where your page content will be injected */}
+  </body>
+</html>

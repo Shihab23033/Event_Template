@@ -1,0 +1,115 @@
+---
+import { urlFor } from '../../lib/image';
+
+const { images = [] } = Astro.props;
+---
+
+<section class="max-w-6xl mx-auto px-4 py-16">
+  <h2 class="text-3xl font-bold text-center mb-10">Moments & Memories</h2>
+
+  <!-- CSS Grid for responsive gallery -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    {images.map((img: any) => {
+      // Small WebP for fast grid loading
+      const thumbUrl = urlFor(img).width(600).height(600).format('webp').quality(80).url();
+      // High-res WebP loaded only on click
+      const fullUrl = urlFor(img).width(1600).format('webp').quality(90).url();
+
+      return (
+        <button
+          type="button"
+          class="gallery-item group relative overflow-hidden rounded-2xl bg-gray-100 aspect-square shadow-sm cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          data-full-src={fullUrl}
+          data-alt={img.alt || "Event photo"}
+          data-caption={img.caption || ""}
+          data-year={img.year || ""}
+        >
+          <img 
+            src={thumbUrl} 
+            alt={img.alt || "Event photo"}
+            loading="lazy"
+            decoding="async"
+            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          {img.caption && (
+            <div class="absolute bottom-0 inset-x-0 bg-linear-to-t from-black/70 to-transparent p-4 text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+              <p>{img.caption}</p>
+              {img.year && <span class="text-xs text-gray-300">{img.year}</span>}
+            </div>
+          )}
+        </button>
+      );
+    })}
+  </div>
+
+  <!-- Lightbox Modal for Fullscreen View -->
+  <dialog 
+    id="lightbox-dialog" 
+    class="backdrop:bg-black/80 bg-transparent p-0 border-0 max-w-5xl w-[90vw] max-h-[90vh] rounded-2xl overflow-hidden focus:outline-none m-auto"
+  >
+    <div class="relative flex flex-col items-center justify-center bg-black/90 p-4 rounded-2xl">
+      <!-- Close Button -->
+      <button 
+        id="close-lightbox" 
+        type="button" 
+        class="absolute top-4 right-4 text-white/80 hover:text-white bg-black/50 hover:bg-black/80 rounded-full p-2 transition z-10 cursor-pointer"
+        aria-label="Close modal"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <!-- Fullsize Image -->
+      <img id="lightbox-img" src="" alt="" class="max-h-[80vh] w-auto object-contain rounded-lg" />
+
+      <!-- Caption Details -->
+      <div id="lightbox-caption-box" class="mt-3 text-center text-white hidden">
+        <p id="lightbox-caption" class="text-base font-medium"></p>
+        <span id="lightbox-year" class="text-xs text-gray-400"></span>
+      </div>
+    </div>
+  </dialog>
+</section>
+
+<script>
+  // Interactive Lightbox Script
+  const dialog = document.getElementById('lightbox-dialog') as HTMLDialogElement | null;
+  const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement | null;
+  const lightboxCaptionBox = document.getElementById('lightbox-caption-box');
+  const lightboxCaption = document.getElementById('lightbox-caption');
+  const lightboxYear = document.getElementById('lightbox-year');
+  const closeBtn = document.getElementById('close-lightbox');
+
+  const galleryItems = document.querySelectorAll('.gallery-item');
+
+  galleryItems.forEach((item) => {
+    item.addEventListener('click', () => {
+      const fullSrc = item.getAttribute('data-full-src');
+      const alt = item.getAttribute('data-alt');
+      const caption = item.getAttribute('data-caption');
+      const year = item.getAttribute('data-year');
+
+      if (dialog && lightboxImg && fullSrc) {
+        lightboxImg.src = fullSrc;
+        lightboxImg.alt = alt || '';
+
+        if (caption || year) {
+          if (lightboxCaptionBox) lightboxCaptionBox.classList.remove('hidden');
+          if (lightboxCaption) lightboxCaption.textContent = caption || '';
+          if (lightboxYear) lightboxYear.textContent = year || '';
+        } else if (lightboxCaptionBox) {
+          lightboxCaptionBox.classList.add('hidden');
+        }
+
+        dialog.showModal();
+      }
+    });
+  });
+
+  // Close modal handlers
+  closeBtn?.addEventListener('click', () => dialog?.close());
+  dialog?.addEventListener('click', (e) => {
+    if (e.target === dialog) dialog.close();
+  });
+</script>

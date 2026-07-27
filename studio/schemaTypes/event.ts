@@ -14,5 +14,24 @@ export default defineType({
       type: 'string',
       description: 'Example: #14b8a6 for teal. Keep the # symbol.'
     }),
+    
+    // --> ADDED GALLERY FIELD HERE <--
+    defineField({
+      name: 'gallery',
+      title: 'Photo Gallery',
+      type: 'array',
+      of: [
+        {
+          type: 'image',
+          options: { hotspot: true }, // Allows custom visual focus points
+          fields: [
+            { name: 'alt', title: 'Alternative Text (for accessibility)', type: 'string' },
+            { name: 'caption', title: 'Caption', type: 'string' },
+            { name: 'year', title: 'Year (for multi-year events)', type: 'string' },
+          ],
+        },
+      ],
+    }),
+    
   ],
 })
