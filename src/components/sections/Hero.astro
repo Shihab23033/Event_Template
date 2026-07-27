@@ -1,0 +1,9 @@
+---
+// The component expects these details to be passed to it
+const { title, subtitle, date } = Astro.props;
+---
+
+{title}
+{subtitle && { subtitle }}
+
+{date}

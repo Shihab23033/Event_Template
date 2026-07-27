@@ -1,0 +1,16 @@
+---
+import "../styles/global.css";
+
+// These props will eventually come from your CMS
+const {
+  title = "Event Template",
+  themeColor = "#000000",
+  themeFont = "sans-serif",
+} = Astro.props;
+---
+
+{title}
+
+{/* Injecting CSS variables here allows Tailwind to use them everywhere */}
+
+{/* The  is where your page content will be injected */}

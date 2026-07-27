@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+  /* CMS-controlled dynamic theme variables */
+  --color-primary: var(--theme-primary, #000000);
+  --font-display: var(--theme-font, 'sans-serif');
+}
