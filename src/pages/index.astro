@@ -4,24 +4,29 @@ import Hero from '../components/sections/Hero.astro';
 import Gallery from '../components/sections/Gallery.astro';
 import { sanityClient } from '../lib/sanity';
 
-// GROQ Query fetching all essential settings and gallery images
-const query = `*[_type == "eventData"] | order(_updatedAt desc)[0]`;
+// 1. Fetch document (Update "eventData" to "siteSettings" if that's what your schema uses)
+const query = `*[_type == "eventData" || _type == "siteSettings"] | order(_updatedAt desc)[0]`;
 const event = await sanityClient.fetch(query);
 
+// Debug Log: Check your terminal output to verify what Sanity returned!
+console.log("Fetched Sanity Event Data:", event);
+
 if (!event) {
-  return Astro.redirect('/404'); // Handle case where no data exists
+  return Astro.redirect('/404');
 }
+
+// Map the theme field from Sanity (supports either theme or themeColor)
+const selectedTheme = event.theme || event.themeColor || 'gold';
 ---
 
 <BaseLayout 
   title={event.title || "Memory Album"} 
-  themeColor={event.themeColor} 
-  fontStyle={event.fontStyle}
+  theme={selectedTheme}
 >
   <Hero 
     title={event.title} 
-    eventDateTime={event.eventDateTime} // Precise datetime for calculation
-    heroDisplayDate={event.heroDisplayDate} // Human date to show
+    eventDateTime={event.eventDateTime} 
+    heroDisplayDate={event.heroDisplayDate} 
     heroImage={event.heroImage}
     welcomeText={event.welcomeText}
   />
